@@ -20,7 +20,16 @@ public class Main {
 		// Don't forget to disable the parent handlers.
 		logger.setUseParentHandlers(false);
 		
-		final DocumentForm docForm = new DocumentForm();
+		Config conf = new Config();
+		try {
+			conf = Config.load();
+		} catch (Exception e) {
+			conf.save();
+		}
+		
+		ProtectedTextSite pt = new ProtectedTextSite();
+		
+		final DocumentForm docForm = new DocumentForm(pt);
 		docForm.setAlwaysOnTop(true);
 		
 		GlobalKeyListener globalKeyListener = new GlobalKeyListener();

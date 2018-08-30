@@ -14,9 +14,12 @@ public class DocumentForm extends JFrame {
 	private Robot robot;
 	private JTextArea textArea;
 	File file1 = new File("memo.txt");
+	private ProtectedTextSite pt;
 
-	public DocumentForm() throws AWTException {
+	public DocumentForm(ProtectedTextSite pt) throws AWTException {
 		super("Write a Note");
+		
+		this.pt = pt;
 		
 		robot = new Robot();
 		setSize(640, 480);
@@ -37,11 +40,7 @@ public class DocumentForm extends JFrame {
 		float size = 14;
 		textArea.setFont( font.deriveFont(size) );
 		
-		try (FileReader fr = new FileReader(file1.getAbsoluteFile())) {
-			textArea.read(fr, file1);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		//load();
 		
 		
 		JMenuBar menuBar = new JMenuBar(); // menubar
@@ -81,12 +80,18 @@ public class DocumentForm extends JFrame {
 
 	}
 
+
 	
 	@Override 
 	public void setVisible(boolean visible) {
+		if (visible) {
+			load();
+		}
+
 		super.setVisible(visible);
 	 
 		if (visible) {
+			
 			EventQueue.invokeLater(new Runnable() {
 				
 				@Override
@@ -114,12 +119,35 @@ public class DocumentForm extends JFrame {
 
 
 	private void save() {
-		try (FileWriter fw = new FileWriter(file1.getAbsoluteFile(), false)) {
-			textArea.write(fw);
-		} catch (IOException e) {
+		try {
+			this.pt.save(textArea.getText());
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+//		try (FileWriter fw = new FileWriter(file1.getAbsoluteFile(), false)) {
+//			textArea.write(fw);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 
+	private void load() {
+		try {
+			String text = this.pt.load();
+			int oldCaretPos = textArea.getCaretPosition();
+			textArea.setText(text);
+			textArea.setCaretPosition(oldCaretPos);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+//		try (FileReader fr = new FileReader(file1.getAbsoluteFile())) {
+//			textArea.read(fr, file1);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+	}
+
+	
 }
