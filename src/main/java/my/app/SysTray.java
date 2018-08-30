@@ -17,6 +17,7 @@ import javax.swing.UIManager;
 public class SysTray {
 	
 	protected JPopupMenu systemTrayPopupMenu;
+	private Runnable hook;
 	
 	
 	
@@ -35,8 +36,9 @@ public class SysTray {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(null, "Sticky Notes App");
-				
+				if (hook != null) {
+					hook.run();
+				}
 			}
 		});
 		
@@ -56,8 +58,9 @@ public class SysTray {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				JOptionPane.showMessageDialog(null, "Sticky Notes App");
+				if (hook != null) {
+					hook.run();
+				}
 			}
 		});
 		
@@ -84,5 +87,11 @@ public class SysTray {
 			System.out.println("TrayIcon could not be added.");
 		}
 		
+	}
+
+
+
+	public void registerHook(Runnable runnable) {
+		this.hook = runnable;
 	}
 }

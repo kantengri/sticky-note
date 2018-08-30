@@ -14,5 +14,23 @@
 	    	<artifactId>jnativehook</artifactId>
 	    	<version>2.0.2</version>
 	    </dependency>
-    </dependencies>  
+    </dependencies>
+    
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <configuration>
+        <archive>
+          <manifest>
+            <mainClass>my.app.Main</mainClass>
+          </manifest>
+        </archive>
+        <descriptorRefs>
+          <descriptorRef>jar-with-dependencies</descriptorRef>
+        </descriptorRefs>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>      
 </project>
