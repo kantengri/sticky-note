@@ -3,53 +3,31 @@ package my.app;
 import java.awt.AWTException;
 import java.awt.Image;
 import java.awt.MenuItem;
+import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
-
 import javax.imageio.ImageIO;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 public class SysTray {
 	
+	protected JPopupMenu systemTrayPopupMenu;
 	
 	
-	public void run() {
-		
-	    SwingUtilities.invokeLater(new Runnable() {
-	        @Override
-	        public void run () {
-	            try {
-	                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-	                go();
-	            } catch (Exception e) {
-	                System.out.println("Not using the System UI defeats the purpose...");
-	                e.printStackTrace();
-	            }
-	        }
-
-	    });
-	    
-	}
 	
-	private void go() throws Exception {
+	public void run() throws Exception {
 	    
 		// Check the SystemTray is supported
 		if (!SystemTray.isSupported()) {
 			System.out.println("SystemTray is not supported");
 			return;
 		}
-		final JPopupMenu popup = new JPopupMenu();
+		final PopupMenu popup = new PopupMenu();
 		Image pic = ImageIO.read(Main.class.getClassLoader().getResourceAsStream("icon.png"));
 		final TrayIcon trayIcon = new TrayIcon(pic);
 		trayIcon.setImageAutoSize(true);
@@ -65,7 +43,7 @@ public class SysTray {
 		final SystemTray tray = SystemTray.getSystemTray();
 
 		// Create a pop-up menu components
-		JMenuItem aboutItem = new JMenuItem("About");
+		MenuItem aboutItem = new MenuItem("About");
 		aboutItem.addActionListener(new ActionListener() {
 			
 			@Override
@@ -73,9 +51,7 @@ public class SysTray {
 				JOptionPane.showMessageDialog(null, "Sticky Notes App");
 			}
 		});
-		JMenuItem displayItem = new JMenuItem("Display Note");
-		displayItem.setMnemonic(KeyEvent.VK_A); 
-		displayItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.ALT_MASK | ActionEvent.SHIFT_MASK));
+		MenuItem displayItem = new MenuItem("Display Note");
 		displayItem.addActionListener(new ActionListener() {
 			
 			@Override
@@ -85,7 +61,7 @@ public class SysTray {
 			}
 		});
 		
-		JMenuItem exitItem = new JMenuItem("Exit");
+		MenuItem exitItem = new MenuItem("Exit");
 		exitItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -98,18 +74,9 @@ public class SysTray {
 		popup.add(displayItem);
 		popup.add(exitItem);
 
-		//trayIcon.setPopupMenu(popup);
+		trayIcon.setPopupMenu(popup);
 		
-		trayIcon.addMouseListener (new MouseAdapter () {
-            @Override
-            public void mouseReleased (MouseEvent me) {
-                if (me.isPopupTrigger()) {
-                    popup.setLocation(me.getX(), me.getY());
-                    popup.setInvoker(popup);
-                    popup.setVisible(true);
-                }
-            }
-        });		
+		
 
 		try {
 			tray.add(trayIcon);
