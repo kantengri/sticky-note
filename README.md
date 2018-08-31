@@ -16,6 +16,8 @@ Place config.json alongside with the jar with your credentials for www.protected
 
 Do not put http://www.protectedtext.com in "site" param.
 
+To run properly the app requires Java support for AES256 else you'll get "Illegal Key size" exception.
+To enable this support install "Unlimited JCE Policy" files into Java installation.
 
 Run
 -------------------
