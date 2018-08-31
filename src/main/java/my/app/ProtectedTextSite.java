@@ -4,9 +4,9 @@ public class ProtectedTextSite {
 	
 	final ClientState clientState;
 	
-	public ProtectedTextSite() throws Exception {
-		String siteURLArg = "/kantengri2";
-		String pass = "Fgfhatyjd1";
+	public ProtectedTextSite(Config conf) throws Exception {
+		String siteURLArg = conf.site;
+		String pass = conf.pass;
 		clientState = new ClientState(siteURLArg, pass);
 	}
 	

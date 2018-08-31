@@ -1,5 +1,6 @@
 package my.app;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 public class CryptoJS {
@@ -7,7 +8,7 @@ public class CryptoJS {
 	public static String SHA512(String saltedToken) throws Exception {
 		MessageDigest md = null;
 		md = MessageDigest.getInstance("SHA-512");
-		md.update(saltedToken.getBytes());
+		md.update(saltedToken.getBytes(StandardCharsets.UTF_8));
 		byte byteData[] = md.digest();
 		String base64 = bytesToHex(byteData);
 		return base64;

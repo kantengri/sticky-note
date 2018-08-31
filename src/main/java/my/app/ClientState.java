@@ -1,8 +1,11 @@
 package my.app;
 
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -20,7 +23,7 @@ public class ClientState {
 	private String password;
 	String urlBase = "https://www.protectedtext.com";
 	
-	Logger logger = Logger.getLogger(ClientState.class.getName());
+	private final Logger logger = LoggerFactory.getLogger(ClientState.class);
 
 	public ClientState(String siteURLArg, String pass) throws Exception {
 		
@@ -71,10 +74,11 @@ public class ClientState {
         
         if (newContent.indexOf(siteHash, newContent.length() - siteHash.length()) != -1) { // if newContent.endsWith(siteHash)
             content = newContent.substring(0, newContent.length() - siteHash.length()); 
+            logger.debug("decrypted content: {}", newContent);
             password = pass;
             return true;
         }
-        logger.log(Level.WARNING, String.format("expected hash: %s, given: %s", siteHash, newContent));
+        logger.warn(String.format("expected hash: %s, given: %s", siteHash, newContent));
         return false;
     };
     
@@ -91,8 +95,9 @@ public class ClientState {
     	return mapper;
     }
     
-    GetRsp httpGet() throws Exception {
-    	String ret = HTTPHelper.get(this.urlBase + this.site + "?action=getJSON");
+    GetRsp httpGet(String ... args) throws Exception {
+    	String ret = HTTPHelper.get(this.urlBase + this.site, args);
+    	logger.debug(ret);
     	ObjectMapper mapper = getMapper();
     	GetRsp rsp = mapper.readValue(ret, GetRsp.class);
 		return rsp;
@@ -103,8 +108,9 @@ public class ClientState {
     	public Optional<Integer> expectedDBVersion;
     }
     
-	boolean httpPost(String[] args) throws Exception {
+	boolean httpPost(String ... args) throws Exception {
 		String ret = HTTPHelper.post(this.urlBase + this.site, args);
+    	logger.debug(ret);
     	ObjectMapper mapper = getMapper();
     	PostRsp rsp = mapper.readValue(ret, PostRsp.class);
     	return "success".equals(rsp.status);
@@ -116,8 +122,8 @@ public class ClientState {
         String newHashContent = this.computeHashContentForDBVersion(content, passwordToUse, expectedDBVersion);
         String eContent = AES256Cryptor.encrypt((content + siteHash), passwordToUse); // encrypt(content + siteHash, password)
         
-		if (!httpPost(new String[]{"initHashContent" , initHashContent, "currentHashContent" , newHashContent, "encryptedContent" , eContent, "action" , "save"})) {
-			throw new RuntimeException("post: status != success");
+		if (!httpPost("initHashContent" , initHashContent, "currentHashContent" , newHashContent, "encryptedContent" , eContent, "action" , "save")) {
+			throw new PostFailedException("post: status != success");
 		}
 
         isNew = false;
@@ -129,7 +135,7 @@ public class ClientState {
     
     
     void executeReloadSite() throws Exception { // function that reloads the site
-    	GetRsp responseObject = httpGet();
+    	GetRsp responseObject = httpGet("action", "getJSON");
     	
         eOrigContent = responseObject.eContent;
         currentDBVersion = responseObject.currentDBVersion;
@@ -148,7 +154,7 @@ public class ClientState {
     void decryptContentAndFinishInitialization() throws Exception {
         boolean success = this.setLoginPasswordAndContentIfCorrect(this.password);
         if (success == false) {
-        	throw new RuntimeException("failed to decrypt content with current password");
+        	throw new LoadFailedException("failed to decrypt content with current password");
         }
         this.setInitHashContent();
     }

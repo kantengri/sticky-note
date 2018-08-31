@@ -84,6 +84,9 @@ public class DocumentForm extends JFrame {
 	
 	@Override 
 	public void setVisible(boolean visible) {
+		if (this.isVisible() == visible) {
+			return;
+		}
 		if (visible) {
 			load();
 		}
@@ -121,6 +124,13 @@ public class DocumentForm extends JFrame {
 	private void save() {
 		try {
 			this.pt.save(textArea.getText());
+		} catch (PostFailedException e) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					JOptionPane.showMessageDialog(null, "Failed to save the note. All changes will be lost.");
+				}
+			});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

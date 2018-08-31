@@ -1,5 +1,7 @@
 package my.app;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * Created by kientux on 3/20/15
  */
@@ -100,7 +102,7 @@ public class AES256Cryptor {
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
             byte[] recoveredPlaintextBytes = cipher.doFinal(ciphertextBytes);
 
-            return new String(recoveredPlaintextBytes);
+            return new String(recoveredPlaintextBytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
         }
