@@ -7,7 +7,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.junit.Ignore;
 import org.junit.Test;
 
-//@Ignore
+@Ignore
 public class TestAll {
 
 	@Test
@@ -58,7 +58,7 @@ public class TestAll {
 	
 	@Test
 	public void loadAndSave() throws Exception {
-		ProtectedTextSite pt = new ProtectedTextSite();
+		ProtectedTextSite pt = new ProtectedTextSite(null);
 		String ret = pt.load();
 		System.out.println(ret);
 		ret += "1";

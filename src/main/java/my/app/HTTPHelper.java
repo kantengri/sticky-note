@@ -12,10 +12,20 @@ import org.apache.commons.httpclient.methods.PostMethod;
 
 public class HTTPHelper {
 	
-	public static String get(String url) throws Exception {
+	public static String get(String url, String ... dataMap) throws Exception {
 		
 		HttpClient httpclient = new HttpClient();
-		GetMethod httpget = new GetMethod("https://www.protectedtext.com/kantengri2?action=getJSON");
+		GetMethod httpget = new GetMethod(url);
+		
+		NameValuePair[] data = new NameValuePair[dataMap.length / 2];
+		int j=0;
+		for (int i=0; i<dataMap.length; i++) {
+			if (i % 2 != 0) {
+				data[j++] = new NameValuePair(dataMap[i-1], dataMap[i]);
+			}
+		}
+		
+		httpget.setQueryString(data);
 		try {
 			httpclient.executeMethod(httpget);
 			//System.out.println(httpget.getStatusLine());
@@ -27,7 +37,7 @@ public class HTTPHelper {
 		
 	}
 	
-	public static String post(String url, String[] dataMap) throws Exception {
+	public static String post(String url, String ... dataMap) throws Exception {
 		HttpClient httpclient = new HttpClient();
 		PostMethod post = new PostMethod(url);
 		NameValuePair[] data = new NameValuePair[dataMap.length / 2];

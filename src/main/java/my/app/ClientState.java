@@ -91,8 +91,9 @@ public class ClientState {
     	return mapper;
     }
     
-    GetRsp httpGet() throws Exception {
-    	String ret = HTTPHelper.get(this.urlBase + this.site + "?action=getJSON");
+    GetRsp httpGet(String ... args) throws Exception {
+    	String ret = HTTPHelper.get(this.urlBase + this.site, args);
+    	logger.log(Level.FINE, ret);
     	ObjectMapper mapper = getMapper();
     	GetRsp rsp = mapper.readValue(ret, GetRsp.class);
 		return rsp;
@@ -103,8 +104,9 @@ public class ClientState {
     	public Optional<Integer> expectedDBVersion;
     }
     
-	boolean httpPost(String[] args) throws Exception {
+	boolean httpPost(String ... args) throws Exception {
 		String ret = HTTPHelper.post(this.urlBase + this.site, args);
+    	logger.log(Level.FINE, ret);
     	ObjectMapper mapper = getMapper();
     	PostRsp rsp = mapper.readValue(ret, PostRsp.class);
     	return "success".equals(rsp.status);
@@ -116,7 +118,7 @@ public class ClientState {
         String newHashContent = this.computeHashContentForDBVersion(content, passwordToUse, expectedDBVersion);
         String eContent = AES256Cryptor.encrypt((content + siteHash), passwordToUse); // encrypt(content + siteHash, password)
         
-		if (!httpPost(new String[]{"initHashContent" , initHashContent, "currentHashContent" , newHashContent, "encryptedContent" , eContent, "action" , "save"})) {
+		if (!httpPost("initHashContent" , initHashContent, "currentHashContent" , newHashContent, "encryptedContent" , eContent, "action" , "save")) {
 			throw new RuntimeException("post: status != success");
 		}
 
@@ -129,7 +131,7 @@ public class ClientState {
     
     
     void executeReloadSite() throws Exception { // function that reloads the site
-    	GetRsp responseObject = httpGet();
+    	GetRsp responseObject = httpGet("action", "getJSON");
     	
         eOrigContent = responseObject.eContent;
         currentDBVersion = responseObject.currentDBVersion;

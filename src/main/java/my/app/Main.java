@@ -1,15 +1,18 @@
 package my.app;
 
-import java.awt.Frame;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import javax.swing.JOptionPane;
-
 import org.jnativehook.GlobalScreen;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public class Main {
+	
+	  static {
+	      LogManager.getLogManager().reset();
+	      SLF4JBridgeHandler.install();
+	  }	
 
 	public static void main(String[] args) throws Exception {
 		
@@ -18,7 +21,7 @@ public class Main {
 		logger.setLevel(Level.OFF);
 
 		// Don't forget to disable the parent handlers.
-		logger.setUseParentHandlers(false);
+		//logger.setUseParentHandlers(false);
 		
 		Config conf = new Config();
 		try {
@@ -27,7 +30,15 @@ public class Main {
 			conf.save();
 		}
 		
-		ProtectedTextSite pt = new ProtectedTextSite();
+		ProtectedTextSite pt = new ProtectedTextSite(conf);
+		
+		System.out.println("trying to load memo from site");
+		
+		pt.load(); // prefetch
+
+		System.out.println("finish loading memo from site");
+		System.out.println("press Alt-Shift-1 to open popup window");
+
 		
 		final DocumentForm docForm = new DocumentForm(pt);
 		docForm.setAlwaysOnTop(true);

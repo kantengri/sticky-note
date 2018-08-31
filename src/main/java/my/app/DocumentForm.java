@@ -84,6 +84,9 @@ public class DocumentForm extends JFrame {
 	
 	@Override 
 	public void setVisible(boolean visible) {
+		if (this.isVisible() == visible) {
+			return;
+		}
 		if (visible) {
 			load();
 		}

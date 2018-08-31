@@ -1,5 +1,7 @@
 package my.app;
 
+import javax.swing.SwingUtilities;
+
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -38,13 +40,13 @@ public class GlobalKeyListener implements NativeKeyListener {
 		switch (e.getKeyChar()) {
 		case 27:
 			if (escapeHook != null) {
-				escapeHook.run();
+				SwingUtilities.invokeLater(escapeHook);
 			}
 			break;
 		case '!':
 			if (altPressed && shiftPressed) {
 				if (hook != null) {
-					hook.run();
+					SwingUtilities.invokeLater(hook);
 				}
 			}
 		}
