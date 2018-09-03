@@ -9,6 +9,13 @@ import java.io.IOException;
 
 import javax.swing.*;
 
+import org.apache.commons.lang.SystemUtils;
+
+import com.sun.jna.Memory;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.win32.W32APIOptions;
+
 public class DocumentForm extends JFrame {
 
 	private Robot robot;
@@ -94,30 +101,60 @@ public class DocumentForm extends JFrame {
 		super.setVisible(visible);
 	 
 		if (visible) {
-			
-			EventQueue.invokeLater(new Runnable() {
-				
-				@Override
-				public void run() {
-					try {
-						// remember the last location of mouse
-						Point oldMouseLocation = MouseInfo.getPointerInfo().getLocation();
-		 
-						// simulate a mouse click on title bar of window
-						robot.mouseMove(DocumentForm.this.getX() + 10, DocumentForm.this.getY() + 5);
-						robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-						robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-						// move mouse to old location
-						robot.mouseMove((int)oldMouseLocation.getX(), (int)oldMouseLocation.getY());
-					}
-					catch (Exception ex) { }
-				}
-			});
+			stealFocus();
 			
 		} else {
 			save();
 		}
 	 
+	}
+
+
+	static interface User32 extends com.sun.jna.platform.win32.User32 {
+
+	    User32 INSTANCE = (User32) Native.loadLibrary(User32.class,
+	            W32APIOptions.DEFAULT_OPTIONS);
+
+	    boolean SystemParametersInfo(
+	            int uiAction,
+	            int uiParam,
+	            Object pvParam, // Pointer or int
+	            int fWinIni
+	    );
+	}
+	
+
+	private void stealFocus() {
+		EventQueue.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					Integer mouseSpeed = null;
+					if (SystemUtils.IS_OS_WINDOWS) {
+					    Pointer mouseSpeedPtr = new Memory(4);
+					    mouseSpeed = User32.INSTANCE.SystemParametersInfo(0x0070, 0, mouseSpeedPtr, 0)
+					            ? mouseSpeedPtr.getInt(0) : null;
+					}
+
+				    					
+					// remember the last location of mouse
+					Point oldMouseLocation = MouseInfo.getPointerInfo().getLocation();
+ 
+					// simulate a mouse click on title bar of window
+					robot.mouseMove(DocumentForm.this.getX() + 10, DocumentForm.this.getY() + 5);
+					robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+					// move mouse to old location
+					robot.mouseMove((int)oldMouseLocation.getX(), (int)oldMouseLocation.getY());
+					
+					if (mouseSpeed != null) {
+				        User32.INSTANCE.SystemParametersInfo(0x0071, 0, mouseSpeed, 0x02);
+				    }					
+				}
+				catch (Exception ex) { }
+			}
+		});
 	}
 
 

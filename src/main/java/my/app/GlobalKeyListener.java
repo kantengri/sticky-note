@@ -18,14 +18,28 @@ public class GlobalKeyListener implements NativeKeyListener {
 		this.hook = hook;
 	}
 	
+	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
 		//System.out.println("Key Pressed: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
 		switch (e.getKeyCode()) {
 		case NativeKeyEvent.VC_ALT_L: altPressed = true; break; 
 		case NativeKeyEvent.VC_SHIFT_L: shiftPressed = true; break; 
+		case NativeKeyEvent.VC_ESCAPE:  
+			if (escapeHook != null) {
+				SwingUtilities.invokeLater(escapeHook);
+			}
+			break;
+		case NativeKeyEvent.VC_1:
+			if (altPressed && shiftPressed) {
+				if (hook != null) {
+					SwingUtilities.invokeLater(hook);
+				}
+			}
+			break;
 		}
 	}
 
+	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
 		//System.out.println("Key Released: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
 		switch (e.getKeyCode()) {
@@ -34,22 +48,10 @@ public class GlobalKeyListener implements NativeKeyListener {
 		}
 	}
 
+	@Override
 	public void nativeKeyTyped(NativeKeyEvent e) {
 		//System.out.println("Key Typed: " + (int)e.getKeyChar());
 		//System.out.printf("Key Typed: %c, alt=%b ,shift=%b", e.getKeyChar(), altPressed, shiftPressed);
-		switch (e.getKeyChar()) {
-		case 27:
-			if (escapeHook != null) {
-				SwingUtilities.invokeLater(escapeHook);
-			}
-			break;
-		case '!':
-			if (altPressed && shiftPressed) {
-				if (hook != null) {
-					SwingUtilities.invokeLater(hook);
-				}
-			}
-		}
 	}
 
 	public void init() {
