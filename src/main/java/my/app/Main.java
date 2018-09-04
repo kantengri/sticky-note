@@ -1,5 +1,6 @@
 package my.app;
 
+import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -24,9 +25,11 @@ public class Main {
 		//logger.setUseParentHandlers(false);
 		
 		Config conf = new Config();
+		System.out.println("loading config file from " + new File("").getAbsolutePath());
 		try {
 			conf = Config.load();
 		} catch (Exception e) {
+			System.out.println("config file not found - created empty");
 			conf.save();
 		}
 		

@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.swing.*;
 
@@ -22,6 +24,9 @@ public class DocumentForm extends JFrame {
 	private JTextArea textArea;
 	File file1 = new File("memo.txt");
 	private ProtectedTextSite pt;
+	private JProgressBar progressBar;
+	private ExecutorService executor;
+	private JToolBar toolBar;
 
 	public DocumentForm(ProtectedTextSite pt) throws AWTException {
 		super("Write a Note");
@@ -30,6 +35,8 @@ public class DocumentForm extends JFrame {
 		
 		robot = new Robot();
 		setSize(640, 480);
+		
+		executor = Executors.newFixedThreadPool(1);
 		
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
@@ -71,7 +78,13 @@ public class DocumentForm extends JFrame {
 			}
 		});
 		
-		JToolBar toolBar = new JToolBar();
+		toolBar = new JToolBar();
+		toolBar.setVisible(false);
+		
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setString("updating notes");
+		progressBar.setStringPainted(true);
+		toolBar.add(progressBar);
 
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -181,14 +194,33 @@ public class DocumentForm extends JFrame {
 
 
 	private void load() {
-		try {
-			String text = this.pt.load();
-			int oldCaretPos = textArea.getCaretPosition();
-			textArea.setText(text);
-			textArea.setCaretPosition(oldCaretPos);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		toolBar.setVisible(true);
+		textArea.setEnabled(false);
+		progressBar.setValue(0);
+		
+		executor.submit(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					String text = DocumentForm.this.pt.load();
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							int oldCaretPos = textArea.getCaretPosition();
+							textArea.setText(text);
+							toolBar.setVisible(false);
+							progressBar.setValue(100);
+							textArea.setEnabled(true);
+							textArea.setCaretPosition(Math.min(oldCaretPos, text.length()));
+							textArea.requestFocus();
+						}
+					});
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 //		try (FileReader fr = new FileReader(file1.getAbsoluteFile())) {
 //			textArea.read(fr, file1);
 //		} catch (IOException e) {

@@ -3,6 +3,18 @@ simple Java-based todo memo, synchronized with www.protectedtext.com.
 
 ![Popup Window](screenshot.png)
 
+Features
+-------------------
+* Lives in Tray
+* global keyboard shortcut
+* steals focus when pop-ups
+* does not terminate when press "close" button
+* instant secure AES256 synchronization with ProtectedText
+* Android App from ProtectedText project
+* cross-platform, based on Java
+
+
+
 Build
 -------------------
 run build.cmd
@@ -16,8 +28,8 @@ Place config.json alongside with the jar with your credentials for www.protected
 
 Do not put http://www.protectedtext.com in "site" param.
 
-To run properly the app requires Java support for AES256 else you'll get "Illegal Key size" exception.
-To enable this support install "Unlimited JCE Policy" files into Java installation.
+**To run properly the app requires Java support for AES256 else you'll get "Illegal Key size" exception**.
+**To enable this support install "Unlimited JCE Policy" files into Java installation**.
 
 Run
 -------------------
@@ -37,4 +49,4 @@ Any ideas and contributions are welcome.
 
 BUGS
 -------------------
-a lot.
+a few.
