@@ -36,8 +36,12 @@ public class Main {
 		ProtectedTextSite pt = new ProtectedTextSite(conf);
 		
 		System.out.println("trying to load memo from site");
-		
-		pt.load(); // prefetch
+		try {
+			pt.load(); // prefetch
+		} catch (Exception e) {
+			System.out.println("Error loading memo, error" + e);
+		}
+				
 
 		System.out.println("finish loading memo from site");
 		System.out.println("press Alt-Shift-1 to open popup window");

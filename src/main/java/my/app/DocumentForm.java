@@ -10,6 +10,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.*;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.Document;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 
 import org.apache.commons.lang.SystemUtils;
 
@@ -27,6 +33,8 @@ public class DocumentForm extends JFrame {
 	private JProgressBar progressBar;
 	private ExecutorService executor;
 	private JToolBar toolBar;
+	private boolean firstLoad = true;
+	UndoManager undoManager;
 
 	public DocumentForm(ProtectedTextSite pt) throws AWTException {
 		super("Write a Note");
@@ -38,12 +46,15 @@ public class DocumentForm extends JFrame {
 		
 		executor = Executors.newFixedThreadPool(1);
 		
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-        Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-        int x = (int) rect.getMaxX() - this.getWidth();
-        int y = (int) rect.getMaxY() - this.getHeight();
-        setLocation(x, y);
+      //size of the screen
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        //height of the task bar
+        Insets scnMax = Toolkit.getDefaultToolkit().getScreenInsets(getGraphicsConfiguration());
+        int taskBarSize = scnMax.bottom;
+
+        //available size of the screen 
+        setLocation(screenSize.width - getWidth() - 5, screenSize.height - taskBarSize - getHeight() - 5);        
         
 		Container pane = getContentPane();
 		pane.setLayout(new BorderLayout());
@@ -88,6 +99,65 @@ public class DocumentForm extends JFrame {
 
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
+		
+// Undo/Redo
+		
+	    JButton undo = new JButton("Undo");
+	    JButton redo = new JButton("Redo");
+	    
+	    KeyStroke undoKeyStroke = KeyStroke.getKeyStroke(
+	            KeyEvent.VK_Z, Event.CTRL_MASK);
+	    KeyStroke redoKeyStroke = KeyStroke.getKeyStroke(
+	            KeyEvent.VK_Y, Event.CTRL_MASK);
+
+	    undoManager = new UndoManager();
+
+	    Document document = textArea.getDocument();
+	    document.addUndoableEditListener(new UndoableEditListener() {
+	        @Override
+	        public void undoableEditHappened(UndoableEditEvent e) {
+	            undoManager.addEdit(e.getEdit());
+	        }
+	    });
+
+	    // Add ActionListeners
+	    undo.addActionListener((ActionEvent e) -> {
+	        try {
+	            undoManager.undo();
+	        } catch (CannotUndoException cue) {}
+	    });
+	    redo.addActionListener((ActionEvent e) -> {
+	        try {
+	            undoManager.redo();
+	        } catch (CannotRedoException cre) {}
+	    });
+
+	    // Map undo action
+	    textArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+	            .put(undoKeyStroke, "undoKeyStroke");
+	    textArea.getActionMap().put("undoKeyStroke", new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            try {
+	                undoManager.undo();
+	             } catch (CannotUndoException cue) {}
+	        }
+	    });
+	    // Map redo action
+	    textArea.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+	            .put(redoKeyStroke, "redoKeyStroke");
+	    textArea.getActionMap().put("redoKeyStroke", new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            try {
+	                undoManager.redo();
+	             } catch (CannotRedoException cre) {}
+	        }
+	    });
+		
+	    JToolBar toolBarTop = new JToolBar("Still draggable");
+	    toolBarTop.add(undo);
+	    toolBarTop.add(redo);
 //
 		setJMenuBar(menuBar);
 		menuBar.add(fileM);
@@ -97,6 +167,7 @@ public class DocumentForm extends JFrame {
 
 		pane.add(scpane, BorderLayout.CENTER);
 		pane.add(toolBar, BorderLayout.SOUTH);
+	    pane.add(toolBarTop, BorderLayout.NORTH);
 
 	}
 
@@ -174,14 +245,13 @@ public class DocumentForm extends JFrame {
 	private void save() {
 		try {
 			this.pt.save(textArea.getText());
-		} catch (PostFailedException e) {
+		} catch (Exception e) {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					JOptionPane.showMessageDialog(null, "Failed to save the note. All changes will be lost.");
+					JOptionPane.showMessageDialog(null, "Failed to save the note. All changes will be lost. Error=" + e.getMessage());
 				}
 			});
-		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -208,14 +278,22 @@ public class DocumentForm extends JFrame {
 						public void run() {
 							int oldCaretPos = textArea.getCaretPosition();
 							textArea.setText(text);
+							DocumentForm.this.undoManager.discardAllEdits();
 							toolBar.setVisible(false);
 							progressBar.setValue(100);
 							textArea.setEnabled(true);
 							textArea.setCaretPosition(Math.min(oldCaretPos, text.length()));
 							textArea.requestFocus();
+
 						}
 					});
 				} catch (Exception e) {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							JOptionPane.showMessageDialog(null, "Failed to load the note. Error=" + e.getMessage());
+						}
+					});
 					e.printStackTrace();
 				}
 			}

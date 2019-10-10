@@ -3,6 +3,7 @@ package my.app;
 public class ProtectedTextSite {
 	
 	final ClientState clientState;
+	boolean lastLoadOpFailed = false;
 	
 	public ProtectedTextSite(Config conf) throws Exception {
 		String siteURLArg = conf.site;
@@ -11,11 +12,20 @@ public class ProtectedTextSite {
 	}
 	
 	public String load() throws Exception {
-		clientState.executeReloadSite();
+		lastLoadOpFailed = false;
+		try {
+			clientState.executeReloadSite();
+		} catch (Exception e) {
+			lastLoadOpFailed = true;
+			throw e;
+		}
 		return clientState.content;
 	}
 	
 	public void save(String content) throws Exception {
+		if (this.lastLoadOpFailed) {
+			throw new Exception("last load operation failed");
+		}
 		clientState.executeSaveSite(content);
 	}
 }
